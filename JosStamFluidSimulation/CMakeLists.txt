@@ -9,7 +9,8 @@ find_package(glad CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 
 add_executable(${PROJECT_NAME}
-    main.cpp
+    #main.cpp
+    Jos_copypaste.cpp
 )
 
 add_dependencies(${PROJECT_NAME}

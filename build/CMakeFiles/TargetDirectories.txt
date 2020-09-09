@@ -1,6 +1,0 @@
-C:/Users/Latawiec/Desktop/Jos Stam/build/CMakeFiles/ALL_BUILD.dir
-C:/Users/Latawiec/Desktop/Jos Stam/build/CMakeFiles/ZERO_CHECK.dir
-C:/Users/Latawiec/Desktop/Jos Stam/build/Marcin2D/CMakeFiles/ALL_BUILD.dir
-C:/Users/Latawiec/Desktop/Jos Stam/build/Math/CMakeFiles/ALL_BUILD.dir
-C:/Users/Latawiec/Desktop/Jos Stam/build/JosStamFluidSimulation/CMakeFiles/JosStamFluidSimulation.dir
-C:/Users/Latawiec/Desktop/Jos Stam/build/JosStamFluidSimulation/CMakeFiles/ALL_BUILD.dir
