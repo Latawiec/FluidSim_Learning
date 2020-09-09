@@ -8,6 +8,7 @@
 
 #include "Index2D.hpp"
 #include "Math.hpp"
+#include <algorithm>
 
 
 #define IX(i,j) ((i) + (N+2)*(j))
@@ -62,8 +63,6 @@ void advect(int N, int b, float *d, float *d0, float *u, float *v, float dt)
         x = i-dt0*u[IX(i,j)];
         y = j-dt0*v[IX(i,j)];
 
-        //std::cout << i << ' ' << j << " into " << x << ' ' << y << std::endl;
-
         if (x < 0.5f) x = 0.5f;
         if (x > N + 0.5f) x = N + 0.5f;
         i0 = (int)x;
@@ -107,8 +106,8 @@ void project(int N, float *u, float *v, float *p, float *div)
 
 void dens_step(int N, float *x, float *x0, float *u, float *v, float diff, float dt)
 {
-    // add_source(N, x, x0, dt);
-    // SWAP(x0, x); 
+    add_source(N, x0, x, dt);
+    //SWAP(x0, x); 
     diffuse(N, 0, x, x0, diff, dt);
     SWAP(x0, x);
     advect(N, 0, x, x0, u, v, dt);
@@ -116,8 +115,8 @@ void dens_step(int N, float *x, float *x0, float *u, float *v, float diff, float
 
 void vel_step(int N, float *u, float *v, float *u0, float *v0, float visc, float dt)
 {
-    // add_source(N, u, u0, dt);
-    // add_source(N, v, v0, dt);
+    add_source(N, u0, u, dt);
+    add_source(N, v0, v, dt);
     // SWAP(u0, u);
     // SWAP(v0, v);
     
@@ -150,13 +149,13 @@ float vel_u[(WIDTH+2) * (HEIGHT+2)];
 float vel_v[(WIDTH+2) * (HEIGHT+2)];
 
 void update(float* out, const float dt) {
-    dens_step(WIDTH, dens, dens0, vel_u0, vel_v0, 0.01f, dt);
-    vel_step(WIDTH, vel_u, vel_v, vel_u0, vel_v0, 0.f, dt);
+    dens_step(WIDTH, dens, dens0, vel_u0, vel_v0, 0.0001f, dt);
+    vel_step(WIDTH, vel_u, vel_v, vel_u0, vel_v0, 0.00001f, dt);
     for(int j=0; j<HEIGHT; ++j)
     for(int i=0; i<WIDTH; ++i) {
-        out[3*(j * WIDTH + i)]     = dens[j * WIDTH + i];
-        out[3*(j * WIDTH + i) + 1] = dens[j * WIDTH + i];
-        out[3*(j * WIDTH + i) + 2] = dens[j * WIDTH + i];
+        out[3*(j * WIDTH + i)]     = std::clamp(std::abs(vel_u0[j * (WIDTH + 2) + i]), 0.f, 1.f);
+        out[3*(j * WIDTH + i) + 1] =  std::clamp(std::abs(vel_v0[j * (WIDTH + 2) + i]), 0.f, 1.f);
+        out[3*(j * WIDTH + i) + 2] = dens[j * (WIDTH + 2) + i];
     }
 }
 
@@ -177,7 +176,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Jos Stam Fluid Simulation", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(2*WIDTH, 2*HEIGHT, "Jos Stam Fluid Simulation", NULL, NULL);
 
     if (window == nullptr) {
         std::cout << "Failed to create GLFW window.\n";
@@ -257,8 +256,9 @@ int main() {
             dens0[j * WIDTH + i] = 1.f;
         }
 
-        if ( i > offset+30 && i < offset+40 && j > offset+30 && j < offset+50) {
-            vel_u0[j * WIDTH + i] = 100.f;
+        if ( i > offset-60 && i < offset+40 && j > offset-60 && j < offset+50) {
+            vel_u0[j * WIDTH + i] = 1.f;
+            vel_v0[j * WIDTH + i] = -10.f;
         }
     }
     
@@ -300,7 +300,6 @@ int main() {
         lastFrameTime = glfwGetTime();
 
         checkErrors("End Loop");
-        std::cout << glfwGetTime() << '\n';
     }
 
     glDeleteVertexArrays(1, &VAO);
