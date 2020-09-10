@@ -34,7 +34,7 @@ project(Fluids)
 set(CMAKE_CXX_STANDARD 17) 
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g -O0")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -O3")
 
 add_subdirectory(Marcin2D)
 add_subdirectory(Math)

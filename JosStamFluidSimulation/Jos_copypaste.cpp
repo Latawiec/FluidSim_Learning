@@ -9,11 +9,12 @@
 #include "Index2D.hpp"
 #include "Math.hpp"
 #include <algorithm>
+#include <random>
 
 
 #define IX(i,j) ((i) + (N+2)*(j))
 #define SWAP(x0, x) { float *tmp = x0; x0=x; x=tmp; }
-#define FOR_EACH_CELL for (j=0; j < N ; j++) for (i=0; i < N; i++) {
+#define FOR_EACH_CELL for (j=1; j < N ; j++) for (i=1; i < N; i++) {
 #define END_FOR }
 
 void add_source(int N, float *x, float *s, float dt) {
@@ -30,9 +31,9 @@ void set_bnd(int N, int b, float *x) {
         x[IX(i, 0)] =   b == 2 ? -x[IX(i,1)] : x[IX(i,1)];
         x[IX(i, N+1)] = b == 2 ? -x[IX(i,N)] : x[IX(i,N)];
     }
-    x[IX(0, 0)] =     0.5f * (x[IX(1, 0)] + x[IX(0, 1)]);
+    x[IX(0, 0)] =     0.5f * (x[IX(1, 0)]   + x[IX(0, 1)]);
     x[IX(0, N+1)] =   0.5f * (x[IX(1, N+1)] + x[IX(0, N)]);
-    x[IX(N+1, 0)] =   0.5f * (x[IX(N, 0)] + x[IX(N+1, 1)]);
+    x[IX(N+1, 0)] =   0.5f * (x[IX(N, 0)]   + x[IX(N+1, 1)]);
     x[IX(N+1, N+1)] = 0.5f * (x[IX(N, N+1)] + x[IX(N+1, N)]);
 }
 
@@ -139,6 +140,7 @@ constexpr unsigned int HEIGHT = WIDTH;
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos);
 int create_canvas_program();
 
 float dens0[(WIDTH+2) * (HEIGHT+2)];
@@ -149,12 +151,12 @@ float vel_u[(WIDTH+2) * (HEIGHT+2)];
 float vel_v[(WIDTH+2) * (HEIGHT+2)];
 
 void update(float* out, const float dt) {
-    dens_step(WIDTH, dens, dens0, vel_u0, vel_v0, 0.0001f, dt);
-    vel_step(WIDTH, vel_u, vel_v, vel_u0, vel_v0, 0.00001f, dt);
-    for(int j=0; j<HEIGHT; ++j)
-    for(int i=0; i<WIDTH; ++i) {
-        out[3*(j * WIDTH + i)]     = std::clamp(std::abs(vel_u0[j * (WIDTH + 2) + i]), 0.f, 1.f);
-        out[3*(j * WIDTH + i) + 1] =  std::clamp(std::abs(vel_v0[j * (WIDTH + 2) + i]), 0.f, 1.f);
+    dens_step(WIDTH, dens, dens0, vel_u0, vel_v0, 0.000001f, dt);
+    vel_step(WIDTH, vel_u, vel_v, vel_u0, vel_v0, 0.000001f, dt);
+    for(int j=1; j<HEIGHT; ++j)
+    for(int i=1; i<WIDTH; ++i) {
+        out[3*(j * WIDTH + i)]     = dens[j * (WIDTH + 2) + i];
+        out[3*(j * WIDTH + i) + 1] = dens[j * (WIDTH + 2) + i];
         out[3*(j * WIDTH + i) + 2] = dens[j * (WIDTH + 2) + i];
     }
 }
@@ -168,6 +170,9 @@ void checkErrors(const char* label) {
         }
     }
 }
+
+std::default_random_engine generator;
+std::uniform_real_distribution<float> distribution(-100.f, 100.f);
 
 int main() {
 
@@ -185,6 +190,7 @@ int main() {
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, cursor_position_callback);
 
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -249,16 +255,17 @@ int main() {
     memset(vel_u0, 0, sizeof(vel_u0));
     memset(vel_v, 0,  sizeof(vel_v));
     memset(vel_v0, 0, sizeof(vel_v0));
-    for(int j=0; j<HEIGHT; ++j)
-    for(int i=0; i<WIDTH; ++i) {
+
+    for(int j=1; j<HEIGHT; ++j)
+    for(int i=1; i<WIDTH; ++i) {
         const int offset = WIDTH/2;
         if ( i > offset-30 && i < offset+50 && j > offset-30 && j < offset+50) {
-            dens0[j * WIDTH + i] = 1.f;
+            dens0[j * (WIDTH + 2) + i] = 1.f;
         }
 
-        if ( i > offset-60 && i < offset+40 && j > offset-60 && j < offset+50) {
-            vel_u0[j * WIDTH + i] = 1.f;
-            vel_v0[j * WIDTH + i] = -10.f;
+        if ( i > 50 && i < WIDTH-50 && j > 50 && j < HEIGHT-50) {
+            vel_u0[j * (WIDTH + 2) + i] = distribution(generator);
+            vel_v0[j * (WIDTH + 2) + i] = distribution(generator);
         }
     }
     
@@ -316,6 +323,20 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
+
+void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        double xpos, ypos;
+        glfwGetCursorPos(window, &xpos, &ypos);
+
+        
+        vel_u0[(HEIGHT - (int)ypos/2) * (WIDTH + 2) + (int)xpos/2] = 20.f * distribution(generator);
+        vel_v0[(HEIGHT - (int)ypos/2) * (WIDTH + 2) + (int)xpos/2] = 20.f * distribution(generator);
+
+    }
+}
+
 
 int create_canvas_program() {
     auto canvasVertSource = 
