@@ -16,16 +16,17 @@ struct Canvas {
 
     bool draw();
 
-    void set_update_function(void(*)(Color*));
+    void set_update_function(void(*)(Color*, const float));
 
 private:
     GLFWwindow* window = nullptr;
     int width, height;
+    float lastFrameTime = 0;
     int canvasProgram = -1;
     unsigned int vertexArrayObject = 0;
     unsigned int elementArrayBuffer = 0;
     unsigned int vertexBufferObject = 0;
     unsigned int canvasTexture = 0;
     unsigned int pixelBuffer = 0;
-    void (*updateFunction)(Color*) = nullptr;
+    void (*updateFunction)(Color*, const float) = nullptr;
 };

@@ -23,13 +23,14 @@ Canvas::Canvas(const int width, const int height, const char* windowName)
 : width(width),
   height(height)
 {
-    glfwInit();
+    assert(glfwInit() == GLFW_TRUE);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     this->window = glfwCreateWindow(width, height, windowName, NULL, NULL);
-    assert((this->window != nullptr));
+    assert(this->window != nullptr);
+
 
     glfwMakeContextCurrent(this->window);
     glfwSetFramebufferSizeCallback(this->window, framebuffer_size_callback);
@@ -72,6 +73,8 @@ Canvas::Canvas(const int width, const int height, const char* windowName)
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.f);
+
+    lastFrameTime = glfwGetTime();
 }
 
 Canvas::~Canvas() {
@@ -87,11 +90,15 @@ bool Canvas::draw() {
     glClear(GL_COLOR_BUFFER_BIT);
 
     glBindTexture(GL_TEXTURE_2D, canvasTexture);
+
+    const float prevLastFrameTime = lastFrameTime;
+    lastFrameTime = glfwGetTime();
+
     if (updateFunction != nullptr) {
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pixelBuffer);
         Color* ptr = (Color*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
         if (ptr != nullptr) {
-            updateFunction(ptr);
+            updateFunction(ptr, lastFrameTime - prevLastFrameTime);
         } else {
             std::cout << "Did not map :( \n";
         }
@@ -117,10 +124,11 @@ bool Canvas::draw() {
     glfwSwapBuffers(window);
     glfwPollEvents();
 
+    lastFrameTime = glfwGetTime();
     return glfwWindowShouldClose(window);
 }
 
-void Canvas::set_update_function(void(*function)(Color*)) {
+void Canvas::set_update_function(void(*function)(Color*, const float)) {
     this->updateFunction = function;
 }
 
@@ -137,6 +145,7 @@ static int create_canvas_program()
         #include "shaders/canvas.vert"
         ;
     int canvasVert = glCreateShader(GL_VERTEX_SHADER);
+
     glShaderSource(canvasVert, 1, &canvasVertSource, NULL);
     glCompileShader(canvasVert);
     {
