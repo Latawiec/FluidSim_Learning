@@ -47,7 +47,8 @@
         "string": "cpp",
         "xlocmon": "cpp",
         "xloctime": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "cassert": "cpp"
     },
     "C_Cpp.errorSquiggles": "Disabled"
 }

@@ -38,4 +38,5 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Wall -O3")
 
 add_subdirectory(Marcin2D)
 add_subdirectory(Math)
+add_subdirectory(Canvas)
 add_subdirectory(JosStamFluidSimulation)

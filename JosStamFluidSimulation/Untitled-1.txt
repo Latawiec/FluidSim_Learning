@@ -1,0 +1,77 @@
+ local new_list = ""
+    local new_class = ""
+    local j = 1
+    for i = 1, #list do
+        if rosterDetails[list[i]]["class"] == "Warrior" then new_list[j] = list[i]
+            j = j + 1
+        end
+    end
+    for i = 1, #list do
+        if rosterDetails[list[i]]["class"] == "Rogue" then new_list[j] = list[i]
+            j = j + 1
+        end
+    end
+    for i = 1, #list do
+        if rosterDetails[list[i]]["class"] == "Hunter" then new_list[j] = list[i]
+            j = j + 1
+        end
+    end
+    for i = 1, #list do
+        if rosterDetails[list[i]]["class"] == "Mage" then new_list[j] = list[i]
+            j = j + 1
+        end
+    end
+    for i = 1, #list do
+        if rosterDetails[list[i]]["class"] == "Warlock" then new_list[j] = list[i]
+            j = j + 1
+        end
+    end
+    for i = 1, #list do
+        if rosterDetails[list[i]]["class"] == "Priest" then new_list[j] = list[i]
+            j = j + 1
+        end
+    end
+    for i = 1, #list do
+        if rosterDetails[list[i]]["class"] == "Paladin" then new_list[j] = list[i]
+            j = j + 1
+        end
+    end
+    for i = 1, #list do
+        if rosterDetails[list[i]]["class"] == "Druid" then new_list[j] = list[i]
+            j = j + 1
+        end
+    end
+    return new_list
+end
+
+function sortByClass(roster)
+    local classesGathered = {
+        "Warrior" = {},
+        "Rouge" = {},
+        "Hunter" = {},
+        "Mage" = {},
+        "Warlock" = {},
+        "Priest" = {},
+        "Paladin" = {},
+        "Druid" = {}
+    }
+    for i = 1, #roster do
+        local element_class = roster[i]["class"]
+        local class_table = classesGathered[element_class];
+        class_table[#class_table+1] = roster[i]
+    end
+
+    -- We now have Tables for each Class. So just merge them
+    local sortedByClass = {}
+    for i = 1, #classesGathered do 
+        for j = 1, #classesGathered[i] do
+            sortByClass[#sortByClass + 1] = classesGathered[i][j]
+        end
+    end
+    return sortByClass
+end
+
+
+    
+        
+        
