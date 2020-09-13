@@ -281,7 +281,9 @@ int main() {
         glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pixelBuffer);
         float* ptr = (float*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
         if (ptr != nullptr) {
-            update(ptr, glfwGetTime() - lastFrameTime);
+            const auto dt = glfwGetTime() - lastFrameTime;
+            update(ptr, dt);
+            std::cout << dt << '\n';
         } else {
             std::cout << "Could not map buffer.\n";
         }

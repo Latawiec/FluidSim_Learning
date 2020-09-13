@@ -23,19 +23,18 @@ Canvas::Canvas(const int width, const int height, const char* windowName)
 : width(width),
   height(height)
 {
-    assert(glfwInit() == GLFW_TRUE);
+    glfwInit() == GLFW_TRUE;
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
+    
     this->window = glfwCreateWindow(width, height, windowName, NULL, NULL);
     assert(this->window != nullptr);
-
 
     glfwMakeContextCurrent(this->window);
     glfwSetFramebufferSizeCallback(this->window, framebuffer_size_callback);
 
-    assert(gladLoadGLLoader((GLADloadproc)glfwGetProcAddress));
+    gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
     canvasProgram = create_canvas_program();
     glUseProgram(canvasProgram);
@@ -73,7 +72,7 @@ Canvas::Canvas(const int width, const int height, const char* windowName)
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.f);
-
+    
     lastFrameTime = glfwGetTime();
 }
 
@@ -124,7 +123,6 @@ bool Canvas::draw() {
     glfwSwapBuffers(window);
     glfwPollEvents();
 
-    lastFrameTime = glfwGetTime();
     return glfwWindowShouldClose(window);
 }
 

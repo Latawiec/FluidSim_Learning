@@ -2,6 +2,8 @@
 
 #include <random>
 #include <Canvas.hpp>
+#include <Index2D.hpp>
+#include <Neighbours2D.hpp>
 
 // Jos Stam
 #define IX(i,j) ((i) + (N+2)*(j))
@@ -38,6 +40,18 @@ void lin_solve(int N, int b, float *x, float *x0, float a, float c) {
         END_FOR
         set_bnd( N, b, x );
     }
+    // auto x_2d = Marcin2D::make_index2d(x, x + N*N, N, N);
+    // const auto x_2d_neighbourhood = Marcin2D::make_neighbours2d(x_2d);
+    // const auto x0_2d = Marcin2D::make_index2d(x0, x0 + N*N, N, N);
+    // int n = 20;
+    // while (n-->0) {
+    //     for(int y=1; y<N; ++y)
+    //     for(int x=1; x<N; ++x) {
+    //         const auto x_nn = x_2d_neighbourhood(x, y);
+    //         x_2d(x, y) = (x0_2d(x, y) + a * (x_nn.left + x_nn.right + x_nn.top + x_nn.bot))/c;
+    //     }
+    //     set_bnd( N, b, x );
+    // }
 }
 
 void diffuse(int N, int b, float *x, float *x0, float diff, float dt)
@@ -99,7 +113,7 @@ void project(int N, float *u, float *v, float *p, float *div)
 
 void dens_step(int N, float *x, float *x0, float *u, float *v, float diff, float dt)
 {
-    add_source(N, x0, x, dt);
+    //add_source(N, x0, x, dt);
     //SWAP(x0, x); 
     diffuse(N, 0, x, x0, diff, dt);
     SWAP(x0, x);
@@ -108,8 +122,8 @@ void dens_step(int N, float *x, float *x0, float *u, float *v, float diff, float
 
 void vel_step(int N, float *u, float *v, float *u0, float *v0, float visc, float dt)
 {
-    add_source(N, u0, u, dt);
-    add_source(N, v0, v, dt);
+    //add_source(N, u0, u, dt);
+    //add_source(N, v0, v, dt);
     // SWAP(u0, u);
     // SWAP(v0, v);
     
@@ -138,7 +152,7 @@ float vel_v[(WIDTH+2) * (HEIGHT+2)];
 
 int main() {
     std::default_random_engine generator;
-    std::uniform_real_distribution<float> distribution(-100.f, 100.f);
+    std::uniform_real_distribution<float> distribution(-1.f, 1.f);
 
     // Init
     memset(dens, 0,   sizeof(dens));
@@ -160,9 +174,6 @@ int main() {
             vel_v0[j * (WIDTH + 2) + i] = distribution(generator);
         }
     }
-
-    vel_u0[HEIGHT/2 * (WIDTH + 2) + WIDTH/2] = 10000.f;
-    vel_v0[HEIGHT/2 * (WIDTH + 2) + WIDTH/2] = 10000.f;
     
     auto canvas = Canvas(WIDTH, HEIGHT, "Potato");
     canvas.set_update_function([](Canvas::Color* data, const float dt) {
@@ -172,10 +183,11 @@ int main() {
         for(int j=1; j<HEIGHT; ++j)
         for(int i=1; i<WIDTH; ++i) {
             const float density = dens[j * (WIDTH + 2) + i];
+            const float velocity_v = std::clamp(std::abs(vel_v[j * (WIDTH + 2) + i]), 0.f, 1.f);
+            const float velocity_u = std::clamp(std::abs(vel_u[j * (WIDTH + 2) + i]), 0.f, 1.f);
             data[j * WIDTH + i] = { density, density, density };
         }
     });
 
-    while(!canvas.draw()){
-    }
+    while(!canvas.draw()){}
 }

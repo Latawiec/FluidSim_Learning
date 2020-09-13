@@ -14,7 +14,7 @@ target_link_libraries(${PROJECT_NAME}
 PRIVATE
     OpenGL::GL
     glfw
-    glad::glad    
+    glad::glad
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
