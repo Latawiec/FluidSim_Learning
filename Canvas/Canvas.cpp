@@ -130,14 +130,14 @@ void Canvas::set_update_function(void(*function)(Color*, const float)) {
     this->updateFunction = function;
 }
 
-static void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     // make sure the viewport matches the new window dimensions; note that width and 
     // height will be significantly larger than specified on retina displays.
     glViewport(0, 0, width, height);
 }
 
-static int create_canvas_program()
+int create_canvas_program()
 {
     auto canvasVertSource = 
         #include "shaders/canvas.vert"

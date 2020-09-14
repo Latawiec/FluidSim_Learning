@@ -1,6 +1,8 @@
 #include <iostream>
-
 #include <random>
+#include <algorithm>
+#include <cstring>
+
 #include <Canvas.hpp>
 #include <Index2D.hpp>
 #include <Neighbours2D.hpp>
