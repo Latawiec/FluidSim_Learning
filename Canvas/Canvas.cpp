@@ -65,11 +65,14 @@ Canvas::Canvas(const int width, const int height, const char* windowName)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_FLOAT, NULL);
     glBindTexture(GL_TEXTURE_2D, 0);
-
-    glGenBuffers(1, &pixelBuffer);
-    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pixelBuffer);
+    
+    glGenBuffers(2, pixelBuffers);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pixelBuffers[0]);
+    glBufferData(GL_PIXEL_UNPACK_BUFFER, 3 * sizeof(float) * width * height, 0, GL_STREAM_DRAW);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pixelBuffers[1]);
     glBufferData(GL_PIXEL_UNPACK_BUFFER, 3 * sizeof(float) * width * height, 0, GL_STREAM_DRAW);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.f);
     
@@ -78,23 +81,37 @@ Canvas::Canvas(const int width, const int height, const char* windowName)
 
 Canvas::~Canvas() {
     glDeleteVertexArrays(1, &vertexArrayObject);
-    glDeleteBuffers(1, &pixelBuffer);
+    glDeleteBuffers(2, pixelBuffers);
     glDeleteBuffers(1, &elementArrayBuffer);
     glDeleteBuffers(1, &vertexBufferObject);
     glDeleteProgram(canvasProgram);
     glfwTerminate();
 }
 
+static bool flipBuffer = false;
 bool Canvas::draw() {
     glClear(GL_COLOR_BUFFER_BIT);
+    const unsigned int readPixelBuffer = pixelBuffers[flipBuffer ? 1 : 0];
+    const unsigned int writePixelBuffer = pixelBuffers[flipBuffer ? 0 : 1];
 
     glBindTexture(GL_TEXTURE_2D, canvasTexture);
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, readPixelBuffer);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB, GL_FLOAT, 0);
 
     const float prevLastFrameTime = lastFrameTime;
     lastFrameTime = glfwGetTime();
 
     if (updateFunction != nullptr) {
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pixelBuffer);
+        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, writePixelBuffer);
+        // From internet:
+        // Note that glMapBuffer() causes sync issue.
+        // If GPU is working with this buffer, glMapBuffer() will wait(stall)
+        // until GPU to finish its job. To avoid waiting (idle), you can call
+        // first glBufferData() with NULL pointer before glMapBuffer().
+        // If you do that, the previous data in PBO will be discarded and
+        // glMapBuffer() returns a new allocated pointer immediately
+        // even if GPU is still working with the previous data.
+        glBufferData(GL_PIXEL_UNPACK_BUFFER, 3 * sizeof(float) * width * height, 0, GL_STREAM_DRAW);
         Color* ptr = (Color*) glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY);
         if (ptr != nullptr) {
             updateFunction(ptr, lastFrameTime - prevLastFrameTime);
@@ -102,10 +119,8 @@ bool Canvas::draw() {
             std::cout << "Did not map :( \n";
         }
         glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);            
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, pixelBuffer);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB, GL_FLOAT, 0);
-        glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
     }
+    glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
 
     glActiveTexture(GL_TEXTURE0);
     glUseProgram(canvasProgram);
@@ -113,6 +128,9 @@ bool Canvas::draw() {
     glBindVertexArray(vertexArrayObject);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementArrayBuffer);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     GLenum err;
     while((err = glGetError()) != GL_NO_ERROR) {
@@ -122,6 +140,7 @@ bool Canvas::draw() {
 
     glfwSwapBuffers(window);
     glfwPollEvents();
+    flipBuffer = !flipBuffer;
 
     return glfwWindowShouldClose(window);
 }

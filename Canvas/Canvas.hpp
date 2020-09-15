@@ -27,6 +27,6 @@ private:
     unsigned int elementArrayBuffer = 0;
     unsigned int vertexBufferObject = 0;
     unsigned int canvasTexture = 0;
-    unsigned int pixelBuffer = 0;
+    unsigned int pixelBuffers[2] = {0, 0};
     void (*updateFunction)(Color*, const float) = nullptr;
 };
