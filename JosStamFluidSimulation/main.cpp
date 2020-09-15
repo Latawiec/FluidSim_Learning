@@ -141,7 +141,7 @@ void vel_step(int N, float *u, float *v, float *u0, float *v0, float visc, float
 }
 // 
 
-constexpr unsigned int WIDTH = 400;
+constexpr unsigned int WIDTH = 300;
 constexpr unsigned int HEIGHT = WIDTH;
 
 float dens0[(WIDTH+2) * (HEIGHT+2)];
